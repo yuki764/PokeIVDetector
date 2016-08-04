@@ -34,6 +34,12 @@
     <jp.hagilab.pokeivdetector.NumberPickerPreference
         android:defaultValue="1"
         android:key="trainer_level"
-        android:title="Trainer Level" />
+        android:title="@string/trainer_level_title" />
+
+    <SwitchPreference
+        android:defaultValue="true"
+        android:key="notification_status"
+        android:summary="@string/notification_summary"
+        android:title="@string/notification_title" />
 
 </PreferenceScreen>
