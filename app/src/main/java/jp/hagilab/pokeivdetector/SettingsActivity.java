@@ -2,6 +2,9 @@ package jp.hagilab.pokeivdetector;
 
 
 import android.annotation.TargetApi;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
@@ -123,6 +126,15 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                 .replace(android.R.id.content, new GeneralPreferenceFragment())
                 .commit();
         setupActionBar();
+
+        Notification noti = new Notification.Builder(getApplicationContext())
+                .setContentTitle("PokeIVDetector")
+                .setContentText("Detect!")
+                .setSmallIcon(R.drawable.ic_notifications_black_24dp)
+                .build();
+
+        NotificationManager manager = (NotificationManager) getSystemService(Service.NOTIFICATION_SERVICE);
+        manager.notify(1000, noti);
     }
 
     /**
