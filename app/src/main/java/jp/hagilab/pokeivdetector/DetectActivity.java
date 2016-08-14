@@ -35,14 +35,16 @@ public class DetectActivity extends Service implements Preference.OnPreferenceCh
 
     @Override
     public void onCreate() {
+        Log.d("DetectA", "onCreate");
         notification = new Notification.Builder(getApplicationContext())
                 .setContentTitle("PokeIVDetector")
                 .setContentText("Detect!")
-                // .setSmallIcon(R.drawable.ic_notifications_black_24dp)
+                .setSmallIcon(R.drawable.ic_notifications_black_24dp)
                 .build();
         manager = (NotificationManager) getSystemService(Service.NOTIFICATION_SERVICE);
-
+        manager.notify(10000,notification);
     }
+
 
     @Override
     public boolean onPreferenceChange(Preference preference, Object o) {
@@ -51,7 +53,7 @@ public class DetectActivity extends Service implements Preference.OnPreferenceCh
             Log.d("debug", "T to F (Disappear Notification)");
         } else {
             Log.d("debug", "F to T (Show Notification)");
-            manager.notify(1000, notification);
+            //manager.notify(1000, notification);
         }
         return true;
     }

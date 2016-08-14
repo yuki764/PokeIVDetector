@@ -17,10 +17,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
+        <service
             android:name=".DetectActivity"
             android:label="Detect">
-        </activity>
+        </service>
     </application>
 
 </manifest>

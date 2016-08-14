@@ -2,6 +2,9 @@ package jp.hagilab.pokeivdetector;
 
 
 import android.annotation.TargetApi;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
@@ -11,6 +14,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.ListPreference;
+import android.preference.SwitchPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.support.v7.app.ActionBar;
@@ -18,6 +22,7 @@ import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.preference.RingtonePreference;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.MenuItem;
 
 import java.util.List;
@@ -38,8 +43,24 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
      * A preference value change listener that updates the preference's summary
      * to reflect its new value.
      */
-    private static Preference.OnPreferenceChangeListener sBindPreferenceSummaryToValueListener = new Preference.OnPreferenceChangeListener() {
+    private static Notification detectNotification;
+    private static NotificationManager detectNotificationManager;
+
+    private static Preference.OnPreferenceChangeListener detectNotificationListener = new Preference.OnPreferenceChangeListener() {
         @Override
+        public boolean onPreferenceChange(Preference preference, Object o) {
+            SwitchPreference sp = (SwitchPreference) preference;
+            if(sp.isChecked()){
+                detectNotificationManager.cancel(10764);
+            } else {
+                detectNotificationManager.notify(10764, detectNotification);
+            }
+            return true;
+        }
+    };
+
+    private static Preference.OnPreferenceChangeListener sBindPreferenceSummaryToValueListener = new Preference.OnPreferenceChangeListener() {
+       @Override
         public boolean onPreferenceChange(Preference preference, Object value) {
             String stringValue = value.toString();
 
@@ -110,10 +131,18 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
 
         // Trigger the listener immediately with the preference's
         // current value.
-        sBindPreferenceSummaryToValueListener.onPreferenceChange(preference,
-                PreferenceManager
-                        .getDefaultSharedPreferences(preference.getContext())
-                        .getString(preference.getKey(), ""));
+        if(preference instanceof NumberPickerPreference) {
+            sBindPreferenceSummaryToValueListener.onPreferenceChange(preference,
+                    PreferenceManager
+                            .getDefaultSharedPreferences(preference.getContext())
+                            .getInt(preference.getKey(),0));
+        } else {
+            sBindPreferenceSummaryToValueListener.onPreferenceChange(preference,
+                    PreferenceManager
+                            .getDefaultSharedPreferences(preference.getContext())
+                            .getString(preference.getKey(), ""));
+        }
+
     }
 
     @Override
@@ -124,7 +153,13 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                 .commit();
         setupActionBar();
 
-        startService(new Intent(SettingsActivity.this, DetectActivity.class));
+        detectNotification = new Notification.Builder(getApplicationContext())
+                .setContentTitle("PokeIVDetector")
+                .setContentText("Detect!")
+                .setSmallIcon(R.drawable.ic_notifications_black_24dp)
+                .build();
+        detectNotificationManager = (NotificationManager) getSystemService(Service.NOTIFICATION_SERVICE);
+        //detectNotificationManager.notify(10764, detectNotification);
     }
 
     /**
@@ -184,17 +219,10 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             // guidelines.
             bindPreferenceSummaryToValue(findPreference("example_text"));
             bindPreferenceSummaryToValue(findPreference("example_list"));
-            // the below 2 lines are nearly equal to " bindPreferenceSummaryToValue(findPreference("trainer_level")); "
-            // * refer to http://stackoverflow.com/questions/20157332/default-bindpreferencesummarytovalue-crashes-for-non-string-types
-            findPreference("trainer_level").setOnPreferenceChangeListener(sBindPreferenceSummaryToValueListener);
-            sBindPreferenceSummaryToValueListener.onPreferenceChange(
-                    findPreference("trainer_level"),
-                    PreferenceManager.getDefaultSharedPreferences(
-                            findPreference("trainer_level").getContext()).getInt(findPreference("trainer_level").getKey(),0));
-
-
-            DetectActivity noti = new DetectActivity();
-            findPreference("notification_status").setOnPreferenceChangeListener(noti);
+            bindPreferenceSummaryToValue(findPreference("trainer_level"));
+            SwitchPreference sp = (SwitchPreference) findPreference("notification_status");
+            sp.setOnPreferenceChangeListener(detectNotificationListener);
+            if(sp.isChecked())   detectNotificationManager.notify(10764,detectNotification);
         }
 
         @Override
