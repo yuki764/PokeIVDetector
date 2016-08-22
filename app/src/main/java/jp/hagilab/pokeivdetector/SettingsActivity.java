@@ -17,6 +17,7 @@ import android.preference.ListPreference;
 import android.preference.SwitchPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
+import android.provider.Settings;
 import android.support.v7.app.ActionBar;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
@@ -24,8 +25,10 @@ import android.preference.RingtonePreference;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * A {@link PreferenceActivity} that presents a set of application settings. On
@@ -46,16 +49,34 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
     private static Notification detectNotification;
     private static NotificationManager detectNotificationManager;
 
-    private static Preference.OnPreferenceChangeListener detectNotificationListener = new Preference.OnPreferenceChangeListener() {
+    private static Context mContext;
+
+    private static final int REQUEST_SETTINGS = 1;
+
+    private static Preference.OnPreferenceChangeListener switchChangeListener = new Preference.OnPreferenceChangeListener() {
         @Override
         public boolean onPreferenceChange(Preference preference, Object o) {
-            SwitchPreference sp = (SwitchPreference) preference;
-            if(sp.isChecked()){
-                detectNotificationManager.cancel(10764);
-            } else {
-                detectNotificationManager.notify(10764, detectNotification);
+            if(preference.getKey().equals("notification_status")) {
+                SwitchPreference sp = (SwitchPreference) preference;
+                if (sp.isChecked()) {
+                    detectNotificationManager.cancel(10764);
+                } else {
+                    detectNotificationManager.notify(10764, detectNotification);
+                }
+                return true;
             }
-            return true;
+            else if(preference.getKey().equals("overlay_status")) {
+                SwitchPreference sp = (SwitchPreference) preference;
+                if (sp.isChecked()) {
+                    mContext.stopService(new Intent(mContext, DetectOverlayService.class));
+                } else {
+                    mContext.startService(new Intent(mContext, DetectOverlayService.class));
+                }
+                return true;
+            }
+            else {
+                return false;
+            }
         }
     };
 
@@ -159,7 +180,25 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                 .setSmallIcon(R.drawable.ic_notifications_black_24dp)
                 .build();
         detectNotificationManager = (NotificationManager) getSystemService(Service.NOTIFICATION_SERVICE);
+
+        mContext = getApplicationContext();
         //detectNotificationManager.notify(10764, detectNotification);
+
+        // Usage list
+        Intent intent = new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS);
+        startActivityForResult(intent, REQUEST_SETTINGS);
+        Toast.makeText(getApplicationContext(), "Please turn ON", Toast.LENGTH_SHORT).show();
+
+        // Overlay
+        Uri uri = Uri.parse("package:" + getPackageName());
+        intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, uri);
+        startActivityForResult(intent, REQUEST_SETTINGS);
+        Toast.makeText(getApplicationContext(), "Please turn ON", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
     /**
@@ -220,9 +259,15 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             bindPreferenceSummaryToValue(findPreference("example_text"));
             bindPreferenceSummaryToValue(findPreference("example_list"));
             bindPreferenceSummaryToValue(findPreference("trainer_level"));
-            SwitchPreference sp = (SwitchPreference) findPreference("notification_status");
-            sp.setOnPreferenceChangeListener(detectNotificationListener);
-            if(sp.isChecked())   detectNotificationManager.notify(10764,detectNotification);
+
+            // Notification Detector
+            SwitchPreference nss = (SwitchPreference) findPreference("notification_status");
+            nss.setOnPreferenceChangeListener(switchChangeListener);
+            if(nss.isChecked())   detectNotificationManager.notify(10764,detectNotification);
+            // Overlay Detector
+            SwitchPreference oss = (SwitchPreference) findPreference("overlay_status");
+            oss.setOnPreferenceChangeListener(switchChangeListener);
+            //if(oss.isChecked())   mContext.startService(new Intent(mContext, DetectOverlayService.class));
         }
 
         @Override

@@ -42,4 +42,10 @@
         android:summary="@string/notification_summary"
         android:title="@string/notification_title" />
 
+    <SwitchPreference
+        android:defaultValue="true"
+        android:key="overlay_status"
+        android:summary="@string/overlay_summary"
+        android:title="@string/overlay_title" />
+
 </PreferenceScreen>

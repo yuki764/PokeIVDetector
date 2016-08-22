@@ -62,6 +62,8 @@
     <!-- For PokeIVDetector -->
     <string name="trainer_level_title">Trainer Level</string>
     <string name="notification_title">Notification</string>
-    <string name="notification_summary">Show notification to detect IV</string>
+    <string name="notification_summary">Show the notification to detect IV</string>
+    <string name="overlay_title">Overlay button</string>
+    <string name="overlay_summary">Show the overlay button to detect IV</string>
 
 </resources>
